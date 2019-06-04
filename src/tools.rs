@@ -3,8 +3,7 @@ use std::io::Result;
 
 use serde_json::Value as JsonValue;
 
-pub fn deploy(name: &JsonValue) -> Result<()> {
-    let root = "/Users/mantou";
+pub fn deploy(root: &str, name: &JsonValue) -> Result<()> {
     fs::create_dir_all(root)?;
 
     let entrys = fs::read_dir(root)?;
