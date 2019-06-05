@@ -1,7 +1,8 @@
+#[macro_use]
+extern crate json;
 extern crate clap;
 use std::env;
 use std::io::Result;
-
 use clap::{App, Arg};
 
 mod serve;
@@ -33,6 +34,6 @@ fn main() -> Result<()>{
     });
     let port = matches.value_of("port").unwrap_or("6464");
 
-    serve::run(root, port);
+    serve::run(root, port)?;
     Ok(())
 }

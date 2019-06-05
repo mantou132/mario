@@ -1,9 +1,7 @@
 use std::fs;
 use std::io::Result;
 
-use serde_json::Value as JsonValue;
-
-pub fn deploy(root: &str, name: &JsonValue) -> Result<()> {
+pub fn deploy(root: &str, name: &str) -> Result<()> {
     fs::create_dir_all(root)?;
 
     let entrys = fs::read_dir(root)?;
@@ -13,7 +11,7 @@ pub fn deploy(root: &str, name: &JsonValue) -> Result<()> {
         let file_name = entry.file_name();
         let metadata = fs::metadata(&path)?;
 
-        if metadata.is_dir() && file_name.to_str() == name.as_str() {
+        if metadata.is_dir() && file_name.to_str() == Some(name) {
             // git pull
             println!("metadata: {:?}", metadata);
         } else {
