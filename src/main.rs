@@ -8,6 +8,18 @@ use clap::{App, Arg};
 mod serve;
 mod tools;
 
+#[derive(Debug)]
+pub struct Config {
+    root: String,
+}
+
+mod global {
+    use super::Config;
+    use once_cell::sync::OnceCell;
+
+    pub static CONFIG: OnceCell<Config> = OnceCell::new();
+}
+
 fn main() -> Result<()>{
     let matches = App::new("mario")
         .version("0.0.1")
@@ -32,8 +44,10 @@ fn main() -> Result<()>{
         Some(dir) => dir,
         None => panic!("get current dir fail"),
     });
+    let root = root.to_string();
     let port = matches.value_of("port").unwrap_or("6464");
 
-    serve::run(root, port)?;
+    global::CONFIG.set(Config { root }).unwrap();
+    serve::run(port)?;
     Ok(())
 }

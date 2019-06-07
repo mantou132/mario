@@ -1,10 +1,13 @@
 use std::fs;
 use std::io::Result;
 
-pub fn deploy(root: &str, name: &str) -> Result<()> {
-    fs::create_dir_all(root)?;
+use crate::global::CONFIG;
 
-    let entrys = fs::read_dir(root)?;
+pub fn deploy(name: &str) -> Result<()> {
+    let root = CONFIG.get().expect("Config is not initialized").root.clone();
+    fs::create_dir_all(&root)?;
+
+    let entrys = fs::read_dir(&root)?;
     for entry in entrys {
         let entry: fs::DirEntry = entry?;
         let path = entry.path();
