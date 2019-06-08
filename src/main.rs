@@ -1,9 +1,11 @@
 #[macro_use]
 extern crate json;
 extern crate clap;
+
 use std::env;
 use std::io::Result;
 use clap::{App, Arg};
+
 
 mod serve;
 mod tools;
@@ -11,6 +13,7 @@ mod tools;
 #[derive(Debug)]
 pub struct Config {
     root: String,
+    after_script: String,
 }
 
 mod global {
@@ -20,7 +23,7 @@ mod global {
     pub static CONFIG: OnceCell<Config> = OnceCell::new();
 }
 
-fn main() -> Result<()>{
+fn main() -> Result<()> {
     let matches = App::new("mario")
         .version("0.0.1")
         .author("mantou <709922234@qq.com>")
@@ -37,6 +40,12 @@ fn main() -> Result<()>{
                 .value_name("PORT")
                 .help("输入端口"),
         )
+        .arg(
+            Arg::with_name("after-script")
+                .short("e")
+                .value_name("COMMAND")
+                .help("更新仓库后执行的脚本"),
+        )
         .get_matches();
     let current_dir = env::current_dir()?;
     let current_dir = current_dir.to_str();
@@ -46,8 +55,12 @@ fn main() -> Result<()>{
     });
     let root = root.to_string();
     let port = matches.value_of("port").unwrap_or("6464");
+    let after_script = matches
+        .value_of("after-script")
+        .unwrap_or("echo complete!")
+        .to_string();
 
-    global::CONFIG.set(Config { root }).unwrap();
+    global::CONFIG.set(Config { root, after_script }).unwrap();
     serve::run(port)?;
     Ok(())
 }
