@@ -48,7 +48,7 @@ fn execute_after_script() {
     let after_script = CONFIG
         .get()
         .expect("Config is not initialized")
-        .after_script
+        .exec
         .clone();
     let split: Vec<&str> = after_script[..].split(' ').collect();
     let mut cmd = Command::new(split[0]);

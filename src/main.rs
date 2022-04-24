@@ -1,11 +1,6 @@
-#[macro_use]
-extern crate json;
-extern crate clap;
-
-use std::env;
-use std::io::Result;
-use clap::{App, Arg};
-
+use clap::Parser;
+use std::fs;
+use std::path::PathBuf;
 
 mod serve;
 mod tools;
@@ -13,7 +8,7 @@ mod tools;
 #[derive(Debug)]
 pub struct Config {
     root: String,
-    after_script: String,
+    exec: String,
 }
 
 mod global {
@@ -23,44 +18,32 @@ mod global {
     pub static CONFIG: OnceCell<Config> = OnceCell::new();
 }
 
-fn main() -> Result<()> {
-    let matches = App::new("mario")
-        .version("0.0.1")
-        .author("mantou <709922234@qq.com>")
-        .about("simple CI/CD")
-        .arg(
-            Arg::with_name("root")
-                .short("r")
-                .value_name("PATH")
-                .help("输入路径"),
-        )
-        .arg(
-            Arg::with_name("port")
-                .short("p")
-                .value_name("PORT")
-                .help("输入端口"),
-        )
-        .arg(
-            Arg::with_name("after-script")
-                .short("e")
-                .value_name("COMMAND")
-                .help("更新仓库后执行的脚本"),
-        )
-        .get_matches();
-    let current_dir = env::current_dir()?;
-    let current_dir = current_dir.to_str();
-    let root = matches.value_of("root").unwrap_or(match current_dir {
-        Some(dir) => dir,
-        None => panic!("get current dir fail"),
-    });
-    let root = root.to_string();
-    let port = matches.value_of("port").unwrap_or("6464");
-    let after_script = matches
-        .value_of("after-script")
-        .unwrap_or("echo complete!")
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// 工作目录
+    #[clap(default_value = "./")]
+    root: String,
+
+    /// 服务端口
+    #[clap(short, long, env = "PORT", default_value_t = 6464)]
+    port: u16,
+
+    /// 更新仓库后执行的脚本
+    #[clap(short, long, default_value_t)]
+    exec: String,
+}
+
+fn main() {
+    let Args { root, exec, port } = Args::parse();
+
+    let root = PathBuf::from(root);
+    let root = fs::canonicalize(&root)
+        .unwrap()
+        .to_str()
+        .unwrap()
         .to_string();
 
-    global::CONFIG.set(Config { root, after_script }).unwrap();
-    serve::run(port)?;
-    Ok(())
+    global::CONFIG.set(Config { root, exec }).unwrap();
+    serve::run(port).unwrap();
 }
